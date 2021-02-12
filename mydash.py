@@ -22,7 +22,6 @@ from core.data import (from_session, get_dt_colunas_data, modify_original_df,
                        parse_file_contents, to_session)
 import plotly.graph_objects as go
 import plotly.express as px
-import plotly.figure_factory as ff
 
 # CSS: http://getskeleton.com/
 others=['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -225,7 +224,7 @@ def change_info_column_dropdown(df_json, info_column):
             fig = px.box(dados, y=info_column)
             graph = dcc.Graph(id="box-plot",figure=fig)
 
-            figd = ff.create_distplot([dados], [info_column])
+            figd =  px.histogram(dados, y=info_column)
             graphd = dcc.Graph(id="dist-plot",figure=figd)
 
             charts = row([
