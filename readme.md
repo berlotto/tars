@@ -72,3 +72,7 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 * https://towardsdatascience.com/%EF%B8%8F-load-the-same-csv-file-10x-times-faster-and-with-10x-less-memory-%EF%B8%8F-e93b485086c7
 * https://medium.com/swlh/6-ways-to-significantly-speed-up-pandas-with-a-couple-lines-of-code-part-2-7a9e41ba76dc 
 * 
+
+# Screens
+
+![tela principal](https://github.com/berlotto/mydash/blob/main/screen.jpg?raw=true)
