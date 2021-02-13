@@ -11,9 +11,9 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from numpy import column_stack
 
-from core.components import get_sample_df_data_children, parse_datacolumns
+from core.components import get_sample_df_data_children, get_table_dfcolumns
 from core.data import (from_session, get_dt_colunas_data, parse_file_contents,
-                       to_session)
+                       to_session, modify_original_df)
 
 # CSS: http://getskeleton.com/
 others=['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -21,25 +21,11 @@ others=['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=others)
 
 tabdata = [
-        dcc.Upload(
-        id='upload-data',
-        children=html.Div([
-            'Solte aqui seu CSV ou clique aqui para selecionar'
-        ]),
-        style={
-            'width': '99%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        },
-        # Allow multiple files to be uploaded
-        multiple=False
+    dcc.Loading(
+        id="loading-samples",
+        type="graph",
+        children=html.Div(id='sample-file-content',children=[""],style={"min-height":"200px"}),
     ),
-    html.Div(id='sample-file-content'),
 ]
 
 tabcolunas = [
@@ -72,11 +58,21 @@ tabcolunas = [
                             'clearable': True,
                             'options': [
                                 {'label':'object', 'value':'object'},
+                                {'label':'str', 'value':'str'},
+                                {'label':'bool', 'value':'bool'},
+                                {'label':'datetime64[ns]', 'value':'datetime64[ns]'},
+                                {'label':'int8', 'value':'int8'},
+                                {'label':'int16', 'value':'int16'},
                                 {'label':'int32', 'value':'int32'},
                                 {'label':'int64', 'value':'int64'},
-                                {'label':'bool', 'value':'bool'},
+                                {'label':'uint8', 'value':'uint8'},
+                                {'label':'uint16', 'value':'uint16'},
+                                {'label':'uint32', 'value':'uint32'},
+                                {'label':'uint64', 'value':'uint64'},
+                                {'label':'float16', 'value':'float16'},
+                                {'label':'float32', 'value':'float32'},
                                 {'label':'float64', 'value':'float64'},
-                                {'label':'datetime64[ns]', 'value':'datetime64[ns]'}
+                                {'label':'float128', 'value':'float128'},
                             ]
                         }
                     }
@@ -90,7 +86,7 @@ tabcolunas = [
                 html.Div(id="original_df_cols", children=[]),
             ]),
             html.Div(className="six columns", children=[
-                html.H3(["Nova configuração"]),
+                html.H3(["Configuração resultante"]),
                 html.Div(id="changed_df_cols", children=[]),
             ]),
         ])
@@ -100,7 +96,24 @@ tabcolunas = [
 
 app.layout = html.Div(id="container", 
 children=[
-    html.H1(children='MyDash'),
+    html.Div(className="row", children=[
+        html.Div(className="nine columns", children=[
+            html.H1(children='MyDash'),
+        ]),
+        html.Div(className="three columns", children=[
+            dcc.Upload(
+                id='upload-data',
+                children=[
+                    html.Button('Carregar dados'),
+                    html.P("Arquivos CSV e Excel")
+                ],
+                style={
+                    "textAlign": "right"
+                },
+                multiple=False
+            ),
+        ])
+    ]),
     dcc.Store(id='original_df', storage_type='session'),
     dcc.Store(id='df', storage_type='session'),
     dcc.Tabs(id='tabs-example', value='tab-data', children=[
@@ -128,7 +141,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             to_session(df), 
             columns_data, 
             get_sample_df_data_children(df),
-            parse_datacolumns(columns_data, id='origin')
+            get_table_dfcolumns(columns_data, id='origin', df=df)
         )
     else:
         raise PreventUpdate
@@ -140,10 +153,15 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
     Input('original_df', 'data'),
     Input('dt_colunas', 'data'))
 def changed_cell_value(original_df_json, data):
-    original_df = from_session(original_df_json)
-    t_novo = parse_datacolumns(data, id='novo')
+    if not data:
+        raise PreventUpdate
 
-    return original_df.to_json(), [t_novo]
+    original_df = from_session(original_df_json)
+    
+    modified_df = modify_original_df(original_df, data)
+    t_novo = get_table_dfcolumns(data, id='novo', df=modified_df)
+
+    return to_session(modified_df), [t_novo]
 
 
 if __name__ == '__main__':
