@@ -58,7 +58,5 @@ def get_sample_df_data_children(df):
             columns=[{'name': i, 'id': i} for i in df.columns]
         ),
     ]
-    import time
-    time.sleep(6)
 
     return children

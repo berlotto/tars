@@ -75,4 +75,4 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 
 # Screens
 
-![tela principal](https://github.com/berlotto/mydash/blob/main/screen.jpg?raw=true)
+![tela principal](https://github.com/berlotto/mydash/raw/main/screen.png)

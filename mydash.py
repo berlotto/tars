@@ -121,7 +121,7 @@ children=[
         dcc.Tab(label='Colunas', value='tab-colunas', children=tabcolunas),
         dcc.Tab(label='Informações', value='tab-info'),
         dcc.Tab(label='Filtro e limpeza', value='tab-filtros'),
-        dcc.Tab(label='Vizualização', value='tag-visualizacao'),
+        dcc.Tab(label='Visualização', value='tag-visualizacao'),
     ]),
 ])
 
