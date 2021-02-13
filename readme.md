@@ -71,7 +71,22 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 * https://www.datageeks.com.br/pre-processamento-de-dados/
 * https://towardsdatascience.com/%EF%B8%8F-load-the-same-csv-file-10x-times-faster-and-with-10x-less-memory-%EF%B8%8F-e93b485086c7
 * https://medium.com/swlh/6-ways-to-significantly-speed-up-pandas-with-a-couple-lines-of-code-part-2-7a9e41ba76dc 
-* 
+
+
+# Run local
+
+    mkvirtualenv mydash -p python3
+    pip install -r requirements.txt
+    python mydash.py 
+        Dash is running on http://127.0.0.1:8050/
+
+        * Serving Flask app "mydash" (lazy loading)
+        * Environment: production
+        WARNING: This is a development server. Do not use it in a production deployment.
+        Use a production WSGI server instead.
+        * Debug mode: on
+
+
 
 # Screens
 
