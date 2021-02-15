@@ -6,14 +6,23 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 import pandas as pd
+import numpy as np
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from numpy import column_stack
+from pandas.api.types import (is_datetime64_any_dtype, is_float_dtype,
+                              is_integer_dtype, is_numeric_dtype,
+                              is_object_dtype, is_string_dtype)
 
-from core.components import get_sample_df_data_children, get_table_dfcolumns
-from core.data import (from_session, get_dt_colunas_data, parse_file_contents,
-                       to_session, modify_original_df)
+from core.components import (get_information_components,
+                             get_sample_df_data_children, get_table_dfcolumns,
+                             container, row, col)
+from core.data import (from_session, get_dt_colunas_data, modify_original_df,
+                       parse_file_contents, to_session)
+import plotly.graph_objects as go
+import plotly.express as px
+import plotly.figure_factory as ff
 
 # CSS: http://getskeleton.com/
 others=['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -24,7 +33,16 @@ tabdata = [
     dcc.Loading(
         id="loading-samples",
         type="graph",
-        children=html.Div(id='sample-file-content',children=[""],style={"min-height":"200px"}),
+        children=html.Div(
+            id='sample-file-content',
+            children=[
+                html.P("Clique em carregar dados...")
+            ],
+            style={
+                "minHeight":"200px",
+                "textAlign":"center",
+                "paddingTop":"5px"
+            }),
     ),
 ]
 
@@ -93,6 +111,7 @@ tabcolunas = [
     ])
 ]
 
+tabinfo = get_information_components(None),
 
 app.layout = html.Div(id="container", 
 children=[
@@ -104,22 +123,23 @@ children=[
             dcc.Upload(
                 id='upload-data',
                 children=[
-                    html.Button('Carregar dados'),
+                    html.Button('Carregar dados', className="button button-primary"),
                     html.P("Arquivos CSV e Excel")
                 ],
                 style={
-                    "textAlign": "right"
+                    "textAlign": "center"
                 },
                 multiple=False
             ),
         ])
     ]),
-    dcc.Store(id='original_df', storage_type='session'),
-    dcc.Store(id='df', storage_type='session'),
+    dcc.Store(id='original_df', storage_type='memory'),
+    dcc.Store(id='df', storage_type='memory'),
     dcc.Tabs(id='tabs-example', value='tab-data', children=[
         dcc.Tab(label='Dados', value='tab-data', children=tabdata),
         dcc.Tab(label='Colunas', value='tab-colunas', children=tabcolunas),
-        dcc.Tab(label='Informações', value='tab-info'),
+        dcc.Tab(label='Informações', value='tab-info', 
+                id="tab-info", children=tabinfo),
         dcc.Tab(label='Filtro e limpeza', value='tab-filtros'),
         dcc.Tab(label='Visualização', value='tag-visualizacao'),
     ]),
@@ -141,7 +161,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             to_session(df), 
             columns_data, 
             get_sample_df_data_children(df),
-            get_table_dfcolumns(columns_data, id='origin', df=df)
+            get_table_dfcolumns(columns_data, id='origin', df=df),
         )
     else:
         raise PreventUpdate
@@ -150,6 +170,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 @app.callback(
     Output('df','data'),
     Output('changed_df_cols','children'),
+    Output('tab-info','children'),
     Input('original_df', 'data'),
     Input('dt_colunas', 'data'))
 def changed_cell_value(original_df_json, data):
@@ -160,8 +181,61 @@ def changed_cell_value(original_df_json, data):
     
     modified_df = modify_original_df(original_df, data)
     t_novo = get_table_dfcolumns(data, id='novo', df=modified_df)
+    tab_info_body = get_information_components(modified_df)
 
-    return to_session(modified_df), [t_novo]
+    return to_session(modified_df), [t_novo], tab_info_body
+
+
+@app.callback(
+    Output('information-content', 'children'),
+    [Input('df', 'data'),
+    Input('selected_column', 'value')]
+)
+def change_info_column_dropdown(df_json, info_column):
+    
+    info_children = []
+    
+    if df_json:
+        df = from_session(df_json)
+        
+        dados = df[info_column]
+
+        if is_numeric_dtype(dados):
+            data_information = {
+                'Minimo': dados.min(),
+                'Máximo': dados.max(),
+                'Quartil 25%': dados.quantile(q=0.25),
+                'Média': dados.mean(),
+                'Mediana': dados.median(),
+                'Quartil 75%': dados.quantile(q=0.75),
+                'Variância': dados.var(),
+                'Desvio Padrão': dados.std(),
+                'Vazios': dados.isna().sum(),
+                'Quantidade': dados.count()
+            }
+            information_gui = dash_table.DataTable(
+                id="data-info-numeric",
+                data=[data_information],
+                columns=[{'name': i, 'id': i} for i in data_information.keys()]
+            )
+
+            # Dados sem inf e na
+            dados = dados[dados.isin([-np.inf, np.inf, np.NaN]) == False]
+
+            fig = px.box(dados, y=info_column)
+            graph = dcc.Graph(id="box-plot",figure=fig)
+
+            figd = ff.create_distplot([dados], [info_column])
+            graphd = dcc.Graph(id="dist-plot",figure=figd)
+
+            charts = row([
+                col("six columns", children=[graph]),
+                col("six columns", children=[graphd]),
+            ])
+
+            info_children = [information_gui, charts]
+
+    return info_children
 
 
 if __name__ == '__main__':

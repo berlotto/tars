@@ -82,5 +82,4 @@ def modify_original_df(original_df, config_data):
                 new_df[currentname] = new_df[currentname].astype(convert_to)
         else: #-> Excluir
             new_df.drop(columns=[colname], inplace=True)
-    print(new_df.info())
     return new_df

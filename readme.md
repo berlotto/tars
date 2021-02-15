@@ -4,6 +4,8 @@ Esta é uma ferramenta que auxilia o cientista de dados a
 trabalhar seus dados nos processos de entendimento e limpeza
 do dataset.
 
+Foi criado baseado no dash.plotly.com
+
 ## Como funciona
 
 De forma geral, temos várias abas que identificam os passos a serem feitos no
