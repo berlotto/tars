@@ -60,12 +60,19 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 
 # Todo
 
+* Quantidade de registros duplicados (https://stackoverflow.com/questions/35584085/how-to-count-duplicate-rows-in-pandas-dataframe)
 * Permitir salvar os dataset carregados para nao precisar subir novamente
 * Permitir trabalhar em um dataset já salvo
 * Permitir salvar o resultado de trabalho de um dataset 
 * Permitir salvar os datasets como parquet
 * Utilizar o https://github.com/vaexio/vaex para trabalhar com os dataframes maiores
 * Permitir utilizar Dask?Swifter?Pandaralell?Vaex?
+* Criar uma aba para fazer tabelas dinâmicas ?
+
+Infos:
+add : amplitude, moda
+histograma, simetria da distribuição
+
 
 
 # Links
@@ -93,3 +100,9 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 # Screens
 
 ![tela principal](https://github.com/berlotto/mydash/raw/main/screen.png)
+
+
+#### Possiveis Nomes:
+
+- repandas
+- 
