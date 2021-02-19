@@ -93,7 +93,11 @@ def get_information_components(df: pd.DataFrame) -> List[Any]:
             ])
         ),
         row(col("twelve columns", children=[
-            html.Div(id='information-content')
+            dcc.Loading(
+                id="loading-information-content",
+                type="graph",
+                children=html.Div(id='information-content')
+            )
         ]))
     ]
 

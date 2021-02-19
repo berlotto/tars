@@ -24,7 +24,10 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 # CSS: http://getskeleton.com/
-others=['https://codepen.io/chriddyp/pen/bWLwgP.css']
+others=[
+    'https://codepen.io/chriddyp/pen/bWLwgP.css',
+    '/assets/custom.css',
+]
 
 app = dash.Dash(__name__, external_stylesheets=others)
 
@@ -51,49 +54,49 @@ tabcolunas = [
         html.Div(className="row", children=[
             html.Div(className="one column", children=[""]),
             html.Div(className="eleven columns", children=[
-                dash_table.DataTable(
-                    id="dt_colunas",
-                    data=[],
-                    editable=True,
-                    columns=[
-                        {'name': 'Coluna', 'id': 'coluna'},
-                        {'name': 'Tipo', 'id': 'tipo'},
-                        {'name': 'Novo nome', 'type':'text', 'id': 'rename','editable':True, 'presentation':'input'},
-                        {'name': 'Converter', 'id': 'converter', 'editable':True, 'presentation':'dropdown'},
-                        {'name': 'Excluir', 'id': 'excluir', 'editable':True, 'presentation':'dropdown'},
-                        {'name': 'Fillna', 'id': 'fillna'},
-                    ],
-                    dropdown={
-                        'excluir': {
-                            'clearable': False,
-                            'options': [
-                                {'label':'Não', 'value':False},
-                                {'label':'Sim', 'value':True}
-                            ]
-                        },
-                        'converter': {
-                            'clearable': True,
-                            'options': [
-                                {'label':'object', 'value':'object'},
-                                {'label':'str', 'value':'str'},
-                                {'label':'bool', 'value':'bool'},
-                                {'label':'datetime64[ns]', 'value':'datetime64[ns]'},
-                                {'label':'int8', 'value':'int8'},
-                                {'label':'int16', 'value':'int16'},
-                                {'label':'int32', 'value':'int32'},
-                                {'label':'int64', 'value':'int64'},
-                                {'label':'uint8', 'value':'uint8'},
-                                {'label':'uint16', 'value':'uint16'},
-                                {'label':'uint32', 'value':'uint32'},
-                                {'label':'uint64', 'value':'uint64'},
-                                {'label':'float16', 'value':'float16'},
-                                {'label':'float32', 'value':'float32'},
-                                {'label':'float64', 'value':'float64'},
-                                {'label':'float128', 'value':'float128'},
-                            ]
+                    dash_table.DataTable(
+                        id="dt_colunas",
+                        data=[],
+                        editable=True,
+                        columns=[
+                            {'name': 'Coluna', 'id': 'coluna'},
+                            {'name': 'Tipo', 'id': 'tipo'},
+                            {'name': 'Novo nome', 'type':'text', 'id': 'rename','editable':True, 'presentation':'input'},
+                            {'name': 'Converter', 'id': 'converter', 'editable':True, 'presentation':'dropdown'},
+                            {'name': 'Excluir', 'id': 'excluir', 'editable':True, 'presentation':'dropdown'},
+                            {'name': 'Fillna', 'id': 'fillna'},
+                        ],
+                        dropdown={
+                            'excluir': {
+                                'clearable': False,
+                                'options': [
+                                    {'label':'Não', 'value':False},
+                                    {'label':'Sim', 'value':True}
+                                ]
+                            },
+                            'converter': {
+                                'clearable': True,
+                                'options': [
+                                    {'label':'object', 'value':'object'},
+                                    {'label':'str', 'value':'str'},
+                                    {'label':'bool', 'value':'bool'},
+                                    {'label':'datetime64[ns]', 'value':'datetime64[ns]'},
+                                    {'label':'int8', 'value':'int8'},
+                                    {'label':'int16', 'value':'int16'},
+                                    {'label':'int32', 'value':'int32'},
+                                    {'label':'int64', 'value':'int64'},
+                                    {'label':'uint8', 'value':'uint8'},
+                                    {'label':'uint16', 'value':'uint16'},
+                                    {'label':'uint32', 'value':'uint32'},
+                                    {'label':'uint64', 'value':'uint64'},
+                                    {'label':'float16', 'value':'float16'},
+                                    {'label':'float32', 'value':'float32'},
+                                    {'label':'float64', 'value':'float64'},
+                                    {'label':'float128', 'value':'float128'},
+                                ]
+                            }
                         }
-                    }
-                ),
+                    ),
             ]),
         ]),
         html.Div(className="row", children=[
@@ -206,11 +209,13 @@ def change_info_column_dropdown(df_json, info_column):
                 'Quartil 25%': dados.quantile(q=0.25),
                 'Média': dados.mean(),
                 'Mediana': dados.median(),
+                'Moda': dados.mode(),
                 'Quartil 75%': dados.quantile(q=0.75),
                 'Variância': dados.var(),
                 'Desvio Padrão': dados.std(),
                 'Vazios': dados.isna().sum(),
-                'Quantidade': dados.count()
+                'Quantidade': dados.count(),
+                'Amplitude': dados.max() - dados.min(),
             }
             information_gui = dash_table.DataTable(
                 id="data-info-numeric",
@@ -224,7 +229,7 @@ def change_info_column_dropdown(df_json, info_column):
             fig = px.box(dados, y=info_column)
             graph = dcc.Graph(id="box-plot",figure=fig)
 
-            figd =  px.histogram(dados, y=info_column)
+            figd =  px.histogram(dados, x=info_column, marginal="box", histnorm='probability')
             graphd = dcc.Graph(id="dist-plot",figure=figd)
 
             charts = row([
