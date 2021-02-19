@@ -1,4 +1,31 @@
 div.dash-table-container {
     max-width: 100%;
-    overflow-x: scroll;
+    overflow-x: auto;
+}
+
+div.panel {
+    border-color: #c3c3c3;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 8px;
+    margin-top: 3px;
+    text-align: center;
+}
+
+div.panel > div.panel-title {
+    width: 100%;
+    font-size: 1.5rem;
+    font-weight: 500;
+    background-color: #e8e8e8;
+    color: #4e4d50;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border-radius: 8px 8px 0px 0px;
+}
+
+div.panel > p {
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }

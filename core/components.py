@@ -1,13 +1,15 @@
 """Módulo que contém métodos auxiliares para construção da tela
 """
 from datetime import datetime
-from typing import List, Any
+from typing import Any, List
 
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
+import numpy as np
 import pandas as pd
+import plotly.express as px
 from dash.exceptions import PreventUpdate
 
 
@@ -102,3 +104,69 @@ def get_information_components(df: pd.DataFrame) -> List[Any]:
     ]
 
     return children
+
+def panel(title, value):
+    return html.Div(className="panel", children=[
+        html.Div(title, className="panel-title"),
+        html.P(str(value))
+    ])
+
+
+def get_numeric_information_gui(dados, info_column):
+    numeric_totals_1 = \
+        row([
+            col("two columns", children=[panel('Minimo',dados.min())]),
+            col("two columns", children=[panel('Quartil 25%', dados.quantile(q=0.25))]),
+            col("two columns", children=[panel('Desvio Padrão', dados.std())]),
+            col("two columns", children=[panel('Média', dados.mean())]),
+            col("two columns", children=[panel('Moda', dados.mode())]),
+            col("two columns", children=[panel('Total de Itens', dados.count())]),
+        ])
+    numeric_totals_2 = \
+        row([
+            col("two columns", children=[panel('Máximo', dados.max())]),
+            col("two columns", children=[panel('Quartil 75%', dados.quantile(q=0.75))]),
+            col("two columns", children=[panel('Variância', dados.var())]),
+            col("two columns", children=[panel('Mediana', dados.median())]),
+            col("two columns", children=[panel('Amplitude', dados.max() - dados.min())]),
+            col("two columns", children=[panel('Vazios', dados.isna().sum())]),
+        ])
+
+    # Dados sem inf e na
+    dados = dados[dados.isin([-np.inf, np.inf, np.NaN]) == False]
+
+    fig = px.box(dados, y=info_column)
+    graph = dcc.Graph(id="box-plot",figure=fig)
+
+    figd =  px.histogram(dados, x=info_column, marginal="box", histnorm='probability')
+    graphd = dcc.Graph(id="dist-plot",figure=figd)
+
+    charts = row([
+        col("six columns", children=[graph]),
+        col("six columns", children=[graphd]),
+    ])
+
+    return [numeric_totals_1, numeric_totals_2, charts]
+
+def get_string_information_gui(dados, info_column):
+    components = []
+
+    components.append(
+        row([
+            col("four columns", children=[panel("Quantidade", dados.count())]),
+            col("four columns", children=[panel("Itens diferentes", dados.nunique())]),
+            col("four columns", children=[panel("Nulos",  dados.isna().sum())]),
+        ])
+    )
+
+    # Gerar o df com a contagem de itens na serie de dados
+    contagem = dados.value_counts()
+
+    components.append(
+        dcc.Graph(
+            id='itens-pie',
+            figure=px.bar(contagem)
+        )
+    )
+
+    return components

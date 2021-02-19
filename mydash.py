@@ -15,8 +15,8 @@ from pandas.api.types import (is_datetime64_any_dtype, is_float_dtype,
                               is_integer_dtype, is_numeric_dtype,
                               is_object_dtype, is_string_dtype)
 
-from core.components import (get_information_components,
-                             get_sample_df_data_children, get_table_dfcolumns,
+from core.components import (get_information_components, get_numeric_information_gui,
+                             get_sample_df_data_children, get_string_information_gui, get_table_dfcolumns,
                              container, row, col)
 from core.data import (from_session, get_dt_colunas_data, modify_original_df,
                        parse_file_contents, to_session)
@@ -203,42 +203,10 @@ def change_info_column_dropdown(df_json, info_column):
         dados = df[info_column]
 
         if is_numeric_dtype(dados):
-            data_information = {
-                'Minimo': dados.min(),
-                'Máximo': dados.max(),
-                'Quartil 25%': dados.quantile(q=0.25),
-                'Média': dados.mean(),
-                'Mediana': dados.median(),
-                'Moda': dados.mode(),
-                'Quartil 75%': dados.quantile(q=0.75),
-                'Variância': dados.var(),
-                'Desvio Padrão': dados.std(),
-                'Vazios': dados.isna().sum(),
-                'Quantidade': dados.count(),
-                'Amplitude': dados.max() - dados.min(),
-            }
-            information_gui = dash_table.DataTable(
-                id="data-info-numeric",
-                data=[data_information],
-                columns=[{'name': i, 'id': i} for i in data_information.keys()]
-            )
-
-            # Dados sem inf e na
-            dados = dados[dados.isin([-np.inf, np.inf, np.NaN]) == False]
-
-            fig = px.box(dados, y=info_column)
-            graph = dcc.Graph(id="box-plot",figure=fig)
-
-            figd =  px.histogram(dados, x=info_column, marginal="box", histnorm='probability')
-            graphd = dcc.Graph(id="dist-plot",figure=figd)
-
-            charts = row([
-                col("six columns", children=[graph]),
-                col("six columns", children=[graphd]),
-            ])
-
-            info_children = [information_gui, charts]
-
+            info_children = get_numeric_information_gui(dados, info_column)
+        elif is_string_dtype(dados):
+            info_children = get_string_information_gui(dados, info_column)
+            
     return info_children
 
 
