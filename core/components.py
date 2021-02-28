@@ -85,7 +85,8 @@ def get_information_components(df: pd.DataFrame) -> List[Any]:
         col_options = [ {'label':c, 'value':c} for c in columns]
     children = [
         row(col("six columns",[
-                html.Label(htmlFor="selected_column",children="Selecione a coluna"),
+                html.Label(htmlFor="selected_column",
+                    children="Select the column to view your information"),
                 dcc.Dropdown(
                     id='selected_column',
                     options=col_options,
@@ -113,21 +114,21 @@ def panel(title, value):
 def get_numeric_information_gui(dados, info_column):
     numeric_totals_1 = \
         row([
-            col("two columns", children=[panel('Minimo',dados.min())]),
-            col("two columns", children=[panel('Quartil 25%', dados.quantile(q=0.25))]),
-            col("two columns", children=[panel('Desvio Padrão', dados.std())]),
-            col("two columns", children=[panel('Média', dados.mean())]),
-            col("two columns", children=[panel('Moda', dados.mode())]),
-            col("two columns", children=[panel('Total de Itens', dados.count())]),
+            col("two columns", children=[panel('Minimum',dados.min())]),
+            col("two columns", children=[panel('Quartile 25%', dados.quantile(q=0.25))]),
+            col("two columns", children=[panel('Standar deviation', dados.std())]),
+            col("two columns", children=[panel('Mean', dados.mean())]),
+            col("two columns", children=[panel('Mode', dados.mode())]),
+            col("two columns", children=[panel('Count total', dados.count())]),
         ])
     numeric_totals_2 = \
         row([
-            col("two columns", children=[panel('Máximo', dados.max())]),
-            col("two columns", children=[panel('Quartil 75%', dados.quantile(q=0.75))]),
-            col("two columns", children=[panel('Variância', dados.var())]),
-            col("two columns", children=[panel('Mediana', dados.median())]),
+            col("two columns", children=[panel('Maximum', dados.max())]),
+            col("two columns", children=[panel('Quartile 75%', dados.quantile(q=0.75))]),
+            col("two columns", children=[panel('Variance', dados.var())]),
+            col("two columns", children=[panel('Median', dados.median())]),
             col("two columns", children=[panel('Amplitude', dados.max() - dados.min())]),
-            col("two columns", children=[panel('Vazios', dados.isna().sum())]),
+            col("two columns", children=[panel('Count empty', dados.isna().sum())]),
         ])
 
     # Dados sem inf e na
