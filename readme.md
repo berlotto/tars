@@ -99,7 +99,7 @@ histograma, simetria da distribuição
 
 # Screens
 
-![tela principal](https://github.com/berlotto/mydash/raw/main/screen.png)
+![tela principal](https://github.com/berlotto/mydash/raw/main/mydash.gif)
 
 
 #### Possiveis Nomes:
