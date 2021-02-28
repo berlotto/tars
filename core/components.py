@@ -44,10 +44,10 @@ def get_sample_df_data_children(df):
     informations = [
         html.Div(className="row", children=[
             html.Div(className="three columns", children=[
-                html.H4([f"Total de colunas:{df.shape[1]}"]), 
+                html.H4([f"Number of columns:{df.shape[1]}"]), 
             ]),
             html.Div(className="three columns", children=[
-                html.H4([f"Total de linhas:{df.shape[0]}"]), 
+                html.H4([f"Number of lines:{df.shape[0]}"]), 
             ]),
         ])
     ]
@@ -72,8 +72,8 @@ def row(children):
     return html.Div(className="row", children=children)
 
 
-def col(classname, children):
-    return html.Div(className=classname, children=children)
+def col(classname, children, **kwargs):
+    return html.Div(className=classname, children=children, **kwargs)
 
 
 def get_information_components(df: pd.DataFrame) -> List[Any]:
@@ -83,17 +83,15 @@ def get_information_components(df: pd.DataFrame) -> List[Any]:
     else:
         columns = df.columns.to_list()
         col_options = [ {'label':c, 'value':c} for c in columns]
-    children = [\
-        row(
-            col("six columns",[
+    children = [
+        row(col("six columns",[
                 html.Label(htmlFor="selected_column",children="Selecione a coluna"),
                 dcc.Dropdown(
                     id='selected_column',
                     options=col_options,
                     value=columns[0]
                 ),
-            ])
-        ),
+        ])),
         row(col("twelve columns", children=[
             dcc.Loading(
                 id="loading-information-content",
@@ -153,9 +151,9 @@ def get_string_information_gui(dados, info_column):
 
     components.append(
         row([
-            col("four columns", children=[panel("Quantidade", dados.count())]),
-            col("four columns", children=[panel("Itens diferentes", dados.nunique())]),
-            col("four columns", children=[panel("Nulos",  dados.isna().sum())]),
+            col("four columns", children=[panel("Count total", dados.count())]),
+            col("four columns", children=[panel("Count unique", dados.nunique())]),
+            col("four columns", children=[panel("Count empty",  dados.isna().sum())]),
         ])
     )
 
@@ -170,3 +168,83 @@ def get_string_information_gui(dados, info_column):
     )
 
     return components
+
+def get_tab_filtering_components(df: pd.DataFrame = None) -> List:
+    
+    df_columns = df.columns if df is not None else []
+
+    dataframe_columns=[
+        {"name": i, "id": i, "selectable": True} for i in df_columns
+    ]
+    dataframe_data=df.to_dict('records') if df is not None else []
+
+    dropdowncolumns_comp = dcc.Dropdown(
+        id='dropdowncolumns',
+        options=[
+            {"label": i, "value": i} for i in df_columns
+        ],
+        value='',
+        clearable=True
+    )
+
+    dropdownoperador_comp =  dcc.Dropdown(
+        id='dropdownoperador',
+        options=[
+            {"label": "equal", "value": "eq"},
+            {"label": "different", "value": "ne"},
+            {"label": "greater then", "value": "gt"},
+            {"label": "greater then or equal to", "value": "ge"},
+            {"label": "less then", "value": "lt"},
+            {"label": "less then or equal to", "value": "le"},
+            {"label": "empty", "value": "isnull"},
+            {"label": "between", "value": "between"},
+            {"label": "one of this", "value": "in"},                
+            {"label": "contains", "value": "contains"},                
+        ],
+        value='eq',
+        clearable=False
+    )
+    inputfiltervalue_comp = dcc.Input(
+        id="inputfiltervalue",
+        type='text',
+        debounce=True, # Change only on ENTER or LOST FOCUS
+        placeholder="Input a value for the filter",
+    )
+
+    datafilters_components = [
+        html.H5('Row filters'),
+        row([
+            col("six columns", children=[
+                html.Label(htmlFor="dropdowncolumns",children="Select one column"),
+                row([
+                    col('six columns', children=[dropdowncolumns_comp]),
+                    col('three columns', children=[dropdownoperador_comp]),
+                    col('three columns', children=[inputfiltervalue_comp], id="inputfiltervalue_col"),
+                ])
+                ,
+            ]),
+            col('six columns', children=[
+                html.P('Selected filters')
+            ])
+        ]),
+        html.H5('Resultant data'),
+    ]
+
+    return [
+        html.Div(children=[
+            html.Div(children=datafilters_components),
+            dash_table.DataTable(
+                id="data_filtering",
+                data=dataframe_data,
+                columns=dataframe_columns,
+                editable=False,
+                row_deletable=False,
+                sort_action='native',
+                sort_mode="multi",
+                filter_action='native',
+                row_selectable='multi',
+                page_action='native',
+                page_size= 50,
+            )
+        ])
+    ]

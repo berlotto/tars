@@ -16,7 +16,7 @@ from pandas.api.types import (is_datetime64_any_dtype, is_float_dtype,
                               is_object_dtype, is_string_dtype)
 
 from core.components import (get_information_components, get_numeric_information_gui,
-                             get_sample_df_data_children, get_string_information_gui, get_table_dfcolumns,
+                             get_sample_df_data_children, get_string_information_gui, get_tab_filtering_components, get_table_dfcolumns,
                              container, row, col)
 from core.data import (from_session, get_dt_colunas_data, modify_original_df,
                        parse_file_contents, to_session)
@@ -38,7 +38,7 @@ tabdata = [
         children=html.Div(
             id='sample-file-content',
             children=[
-                html.P("Clique em carregar dados...")
+                html.P("Click in 'Load data' button to load a dataset...")
             ],
             style={
                 "minHeight":"200px",
@@ -50,7 +50,7 @@ tabdata = [
 
 tabcolunas = [
     html.Div([
-        html.H4("Tratamento de colunas do dataframe"),
+        html.H4("Deal with the dataframe columns"),
         html.Div(className="row", children=[
             html.Div(className="one column", children=[""]),
             html.Div(className="eleven columns", children=[
@@ -59,19 +59,19 @@ tabcolunas = [
                         data=[],
                         editable=True,
                         columns=[
-                            {'name': 'Coluna', 'id': 'coluna'},
-                            {'name': 'Tipo', 'id': 'tipo'},
-                            {'name': 'Novo nome', 'type':'text', 'id': 'rename','editable':True, 'presentation':'input'},
-                            {'name': 'Converter', 'id': 'converter', 'editable':True, 'presentation':'dropdown'},
-                            {'name': 'Excluir', 'id': 'excluir', 'editable':True, 'presentation':'dropdown'},
+                            {'name': 'Column', 'id': 'coluna'},
+                            {'name': 'Type', 'id': 'tipo'},
+                            {'name': 'Rename to', 'type':'text', 'id': 'rename','editable':True, 'presentation':'input'},
+                            {'name': 'Convert to', 'id': 'converter', 'editable':True, 'presentation':'dropdown'},
+                            {'name': 'Remove?', 'id': 'excluir', 'editable':True, 'presentation':'dropdown'},
                             {'name': 'Fillna', 'id': 'fillna'},
                         ],
                         dropdown={
                             'excluir': {
                                 'clearable': False,
                                 'options': [
-                                    {'label':'Não', 'value':False},
-                                    {'label':'Sim', 'value':True}
+                                    {'label':'Keep column', 'value':False},
+                                    {'label':'Remove column', 'value':True}
                                 ]
                             },
                             'converter': {
@@ -102,11 +102,11 @@ tabcolunas = [
         html.Div(className="row", children=[
             html.Div(className="one column", children=[""]),
             html.Div(className="five columns", children=[
-                html.H3(["Configuração original"]),
+                html.H3(["Original configuration"]),
                 html.Div(id="original_df_cols", children=[]),
             ]),
             html.Div(className="six columns", children=[
-                html.H3(["Configuração resultante"]),
+                html.H3(["Result configuration"]),
                 html.Div(id="changed_df_cols", children=[]),
             ]),
         ])
@@ -114,6 +114,8 @@ tabcolunas = [
 ]
 
 tabinfo = get_information_components(None),
+
+tabfiltering = get_tab_filtering_components()
 
 app.layout = html.Div(id="container", 
 children=[
@@ -125,8 +127,8 @@ children=[
             dcc.Upload(
                 id='upload-data',
                 children=[
-                    html.Button('Carregar dados', className="button button-primary"),
-                    html.P("Arquivos CSV e Excel")
+                    html.Button('Load data', className="button button-primary"),
+                    html.P("CSV e Excel files")
                 ],
                 style={
                     "textAlign": "center"
@@ -138,12 +140,13 @@ children=[
     dcc.Store(id='original_df', storage_type='memory'),
     dcc.Store(id='df', storage_type='memory'),
     dcc.Tabs(id='tabs-example', value='tab-data', children=[
-        dcc.Tab(label='Dados', value='tab-data', children=tabdata),
-        dcc.Tab(label='Colunas', value='tab-colunas', children=tabcolunas),
-        dcc.Tab(label='Informações', value='tab-info', 
+        dcc.Tab(label='Data', value='tab-data', children=tabdata),
+        dcc.Tab(label='Columns', value='tab-colunas', children=tabcolunas),
+        dcc.Tab(label='Informations', value='tab-info', 
                 id="tab-info", children=tabinfo),
-        dcc.Tab(label='Filtro e limpeza', value='tab-filtros'),
-        dcc.Tab(label='Visualização', value='tag-visualizacao'),
+        dcc.Tab(label='Filter & Clean', value='tab-filtros', 
+                id='tab-filtros', children=tabfiltering),
+        dcc.Tab(label='Visualization', value='tag-visualizacao'),
     ]),
 ])
 
@@ -152,6 +155,7 @@ children=[
               Output('dt_colunas', 'data'),
               Output('sample-file-content', 'children'),
               Output('original_df_cols','children'),
+            #   Output('tab-filtros','children'),
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
@@ -164,6 +168,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             columns_data, 
             get_sample_df_data_children(df),
             get_table_dfcolumns(columns_data, id='origin', df=df),
+            # get_tab_filtering_components(df)
         )
     else:
         raise PreventUpdate
@@ -173,6 +178,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
     Output('df','data'),
     Output('changed_df_cols','children'),
     Output('tab-info','children'),
+    Output('tab-filtros','children'),
     Input('original_df', 'data'),
     Input('dt_colunas', 'data'))
 def changed_cell_value(original_df_json, data):
@@ -185,7 +191,10 @@ def changed_cell_value(original_df_json, data):
     t_novo = get_table_dfcolumns(data, id='novo', df=modified_df)
     tab_info_body = get_information_components(modified_df)
 
-    return to_session(modified_df), [t_novo], tab_info_body
+    return to_session(modified_df), \
+        [t_novo], \
+        tab_info_body, \
+        get_tab_filtering_components(modified_df)
 
 
 @app.callback(
