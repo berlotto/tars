@@ -29,3 +29,14 @@ div.panel > p {
     margin-top: 5px;
     margin-bottom: 5px;
 }
+
+.infotable th:nth-child(1){
+    border-left: 1px dashed grey;
+}
+.infotable th{
+    text-align: right;
+}
+.infotable td{
+    border-right: 1px dashed grey;
+    text-align: left;
+}

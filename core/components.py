@@ -11,6 +11,33 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 from dash.exceptions import PreventUpdate
+from pandas.api.types import (is_datetime64_any_dtype, is_float_dtype,
+                              is_integer_dtype, is_numeric_dtype,
+                              is_object_dtype, is_string_dtype)
+
+def get_type_count(df, type_name):
+    types_of_columns = [(c,'number' if is_numeric_dtype(df[c]) else 'date' if is_datetime64_any_dtype(df[c]) else 'string') for c in df.columns]
+    dff = pd.DataFrame(types_of_columns, columns=['column','type_name'])
+    counts = dff.type_name.value_counts()
+    try:
+        return counts[type_name]
+    except KeyError:
+        return 0
+
+def get_df_used_memory(df):
+    in_kb = in_mb = in_gb = 0
+    in_bytes = sum([size for size in df.memory_usage(deep=True)])
+    total_size = f"{in_bytes} B"
+    if in_bytes > 1_000:
+        in_kb = round(in_bytes / 1_000, 2)
+        total_size = f"{in_kb} KB"
+    if in_kb > 1_000:
+        in_mb = round(in_kb / 1_000, 2)
+        total_size = f"{in_mb} MB"
+    if in_mb > 1_000:
+        in_gb = round(in_mb / 1_000, 2)
+        total_size = f"{in_gb} MB"
+    return total_size
 
 
 def get_table_dfcolumns(current_data: dict, id:str, df: pd.DataFrame) -> List:
@@ -43,13 +70,26 @@ def get_table_dfcolumns(current_data: dict, id:str, df: pd.DataFrame) -> List:
 def get_sample_df_data_children(df):
     informations = [
         html.Div(className="row", children=[
-            html.Div(className="three columns", children=[
-                html.H4([f"Number of columns:{df.shape[1]}"]), 
+            html.Table(className="twelve columns infotable", children=[
+                html.Tr([
+                    html.Th(['Rows :']),
+                    html.Td([f"{df.shape[0]}"]),
+                    html.Th(['Features :']),
+                    html.Td([f"{df.shape[1]}"]),
+                    html.Th(['Duplicates :']),
+                    html.Td([df.duplicated(subset=None, keep='first').sum()]),
+                    html.Th(['Categorical :']),
+                    html.Td([get_type_count(df, 'string')]),
+                    html.Th(['Numerical :']),
+                    html.Td([get_type_count(df, 'number')]),
+                    html.Th(['Date :']),
+                    html.Td([get_type_count(df, 'date')]),
+                    html.Th(['Used memory :']),
+                    html.Td([f"{get_df_used_memory(df)}"]),
+                ]), 
             ]),
-            html.Div(className="three columns", children=[
-                html.H4([f"Number of lines:{df.shape[0]}"]), 
-            ]),
-        ])
+        ]),
+        html.H4('First lines of data'),
     ]
     
     children = [
@@ -110,24 +150,26 @@ def panel(title, value):
         html.P(str(value))
     ])
 
-
 def get_numeric_information_gui(dados, info_column):
+
+    mode = ','.join([str(x) for x in dados.mode()])
+
     numeric_totals_1 = \
         row([
             col("two columns", children=[panel('Minimum',dados.min())]),
-            col("two columns", children=[panel('Quartile 25%', dados.quantile(q=0.25))]),
-            col("two columns", children=[panel('Standar deviation', dados.std())]),
+            col("two columns", children=[panel('Q1 (25%)', dados.quantile(q=0.25))]),
             col("two columns", children=[panel('Mean', dados.mean())]),
-            col("two columns", children=[panel('Mode', dados.mode())]),
-            col("two columns", children=[panel('Count total', dados.count())]),
+            col("two columns", children=[panel('Median', dados.median())]),
+            col("two columns", children=[panel('Q3 (75%)', dados.quantile(q=0.75))]),
+            col("two columns", children=[panel('Maximum', dados.max())]),
         ])
     numeric_totals_2 = \
         row([
-            col("two columns", children=[panel('Maximum', dados.max())]),
-            col("two columns", children=[panel('Quartile 75%', dados.quantile(q=0.75))]),
+            col("two columns", children=[panel('Standar deviation', dados.std())]),
+            col("two columns", children=[panel('Mode', mode)]),
             col("two columns", children=[panel('Variance', dados.var())]),
-            col("two columns", children=[panel('Median', dados.median())]),
             col("two columns", children=[panel('Amplitude', dados.max() - dados.min())]),
+            col("two columns", children=[panel('Count total', dados.count())]),
             col("two columns", children=[panel('Count empty', dados.isna().sum())]),
         ])
 
@@ -161,11 +203,22 @@ def get_string_information_gui(dados, info_column):
     # Gerar o df com a contagem de itens na serie de dados
     contagem = dados.value_counts()
 
+    def get_unique_values(s):
+        return [
+            html.Tr(html.Td([x]))
+            for x in s.unique()
+        ]
+
     components.append(
-        dcc.Graph(
-            id='itens-pie',
-            figure=px.bar(contagem)
-        )
+        row([
+            col('twelve columns',[
+                dcc.Graph(
+                    id='itens-pie',
+                    figure=px.bar(contagem)
+                ),
+            ])
+        ])
+        
     )
 
     return components
