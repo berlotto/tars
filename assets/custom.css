@@ -40,3 +40,23 @@ div.panel > p {
     border-right: 1px dashed grey;
     text-align: left;
 }
+
+/* Tab 'Filter & Clean', delete X of each filter */
+i.fas.fa-times.deletefiltericon {
+    margin-right: 5px;
+    cursor: pointer;
+    color: #f98585;
+}
+
+h2.special-title{
+    margin-top: 0px;
+    margin-bottom: 8px;
+}
+
+#upload-data {
+    margin-top: 3px;
+}
+
+.text-center {
+    text-align: center;
+}

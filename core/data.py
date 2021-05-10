@@ -31,9 +31,25 @@ def parse_file_contents(contents, filename, date):
     try:
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')),
-                parse_dates=True)
+            try:
+                print("Lendo arquivo...")
+                csv_content = io.StringIO(decoded.decode('utf-8'))
+            except UnicodeDecodeError as e:
+                print("Erro de encoding UTF-8, tentando iso-8859-1...")
+                csv_content = io.StringIO(decoded.decode('iso-8859-1'))
+            
+            csv_content.seek(0)
+            df_semicolon = pd.read_csv(csv_content, parse_dates=True, nrows=1, sep=';')
+            csv_content.seek(0)
+            df_comma = pd.read_csv(csv_content, parse_dates=True, nrows=1, sep=',')
+            csv_content.seek(0)
+            if df_comma.shape[1] > df_semicolon.shape[1]:
+                print("is comma separated")
+                df = pd.read_csv(csv_content, parse_dates=True, sep=',')
+            else:
+                print("is semicolon separated")
+                df = pd.read_csv(csv_content, parse_dates=True, sep=';')
+
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded),
@@ -83,3 +99,14 @@ def modify_original_df(original_df, config_data):
         else: #-> Excluir
             new_df.drop(columns=[colname], inplace=True)
     return new_df
+
+def value_as_type(df, column_name, value):
+    """Try to convert a value to a type compatible with the column type
+    """
+    try:
+        if is_numeric_dtype(df[column_name]):
+            return float(value)
+        else:
+            return str(value)
+    except ValueError as e:
+        return value

@@ -96,7 +96,7 @@ def get_sample_df_data_children(df):
         html.Div(id="info-counts-01", children=informations),
         dash_table.DataTable(
             id="data-table-01",
-            data=df[:10].to_dict('records'),
+            data=df[:25].to_dict('records'),
             columns=[{'name': i, 'id': i} for i in df.columns]
         ),
     ]
@@ -116,7 +116,7 @@ def col(classname, children, **kwargs):
     return html.Div(className=classname, children=children, **kwargs)
 
 
-def get_information_components(df: pd.DataFrame) -> List[Any]:
+def get_information_components(df: pd.DataFrame = None) -> List[Any]:
     if df is None or df.empty:
         columns = ['-']
         col_options = [{'label':'-- falta selecionar os dados --', 'value':'-'}]
@@ -225,36 +225,43 @@ def get_string_information_gui(dados, info_column):
 
 def get_tab_filtering_components(df: pd.DataFrame = None) -> List:
     
-    df_columns = df.columns if df is not None else []
+    df_columns = []
+    dataframe_data = []
 
-    dataframe_columns=[
-        {"name": i, "id": i, "selectable": True} for i in df_columns
-    ]
-    dataframe_data=df.to_dict('records') if df is not None else []
+    if df is not None:
+        df_columns = df.columns 
+
+        dataframe_columns=[
+            {"name": i, "id": i, "selectable": True} for i in df_columns
+        ]
+        dataframe_data=df.to_dict('records') 
+
+    columns_options = [{"label": i, "value": i} for i in df_columns]
 
     dropdowncolumns_comp = dcc.Dropdown(
         id='dropdowncolumns',
-        options=[
-            {"label": i, "value": i} for i in df_columns
-        ],
+        options=columns_options,
         value='',
         clearable=True
     )
 
+    operator_options = [
+        {"label": "equal (=)", "value": "eq"},
+        {"label": "different (!=)", "value": "ne"},
+        {"label": "greater then (>)", "value": "gt"},
+        {"label": "greater then or equal to (>=)", "value": "ge"},
+        {"label": "less then (<)", "value": "lt"},
+        {"label": "less then or equal to (<=)", "value": "le"},
+        {"label": "one of this", "value": "in"},                
+        {"label": "contains", "value": "contains"},                
+        {"label": "is empty", "value": "isnull"},
+        {"label": "is not empty", "value": "notnull"},
+        {"label": "between", "value": "between"},
+    ]
+
     dropdownoperador_comp =  dcc.Dropdown(
         id='dropdownoperador',
-        options=[
-            {"label": "equal", "value": "eq"},
-            {"label": "different", "value": "ne"},
-            {"label": "greater then", "value": "gt"},
-            {"label": "greater then or equal to", "value": "ge"},
-            {"label": "less then", "value": "lt"},
-            {"label": "less then or equal to", "value": "le"},
-            {"label": "empty", "value": "isnull"},
-            {"label": "between", "value": "between"},
-            {"label": "one of this", "value": "in"},                
-            {"label": "contains", "value": "contains"},                
-        ],
+        options=operator_options,
         value='eq',
         clearable=False
     )
@@ -263,6 +270,7 @@ def get_tab_filtering_components(df: pd.DataFrame = None) -> List:
         type='text',
         debounce=True, # Change only on ENTER or LOST FOCUS
         placeholder="Input a value for the filter",
+        disabled=False
     )
 
     datafilters_components = [
@@ -271,34 +279,52 @@ def get_tab_filtering_components(df: pd.DataFrame = None) -> List:
             col("six columns", children=[
                 html.Label(htmlFor="dropdowncolumns",children="Select one column"),
                 row([
-                    col('six columns', children=[dropdowncolumns_comp]),
+                    col('four columns', children=[dropdowncolumns_comp]),
                     col('three columns', children=[dropdownoperador_comp]),
-                    col('three columns', children=[inputfiltervalue_comp], id="inputfiltervalue_col"),
+                    col('four columns', children=[inputfiltervalue_comp], id="inputfiltervalue_col"),
+                    col('one column', children=[
+                        html.Button(id='apply-filter-button', n_clicks=0, style={"padding-top": "4px"}, children=[
+                            html.I(className='fas fa-2x fa-bolt')
+                        ]),
+                        
+                    ]),
                 ])
                 ,
             ]),
             col('six columns', children=[
-                html.P('Selected filters')
+                dash_table.DataTable(
+                    id='data-table-filter',
+                    columns=[
+                        {'name': 'Field ', 'id': 'field'},
+                        {'name': 'Operator ', 'id': 'comp'},
+                        {'name': 'Value', 'id': 'value'},
+                    ],
+                    data=[],
+                    editable=False,
+                    row_deletable=True
+                ),
             ])
         ]),
         html.H5('Resultant data'),
     ]
 
+    table = None
+    if dataframe_data and dataframe_columns:
+        table = dash_table.DataTable(
+            id="data_filtering",
+            data=dataframe_data,
+            columns=dataframe_columns,
+            editable=False,
+            row_deletable=False,
+            sort_action='native',
+            sort_mode="multi",
+            page_action='native',
+            page_size= 50,
+        )
+
     return [
         html.Div(children=[
             html.Div(children=datafilters_components),
-            dash_table.DataTable(
-                id="data_filtering",
-                data=dataframe_data,
-                columns=dataframe_columns,
-                editable=False,
-                row_deletable=False,
-                sort_action='native',
-                sort_mode="multi",
-                filter_action='native',
-                row_selectable='multi',
-                page_action='native',
-                page_size= 50,
-            )
+            table
         ])
     ]

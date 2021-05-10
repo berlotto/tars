@@ -40,6 +40,7 @@ Werkzeug = "==1.0.1"
 xlrd = "==2.0.1"
 
 [dev-packages]
+ipdb = "*"
 
 [requires]
 python_version = "3.8"

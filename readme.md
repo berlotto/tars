@@ -1,10 +1,8 @@
-# MyDash
+# TARS
 
-Esta é uma ferramenta que auxilia o cientista de dados a 
-trabalhar seus dados nos processos de entendimento e limpeza
-do dataset.
+This tool helps the data scientist to more easily explore their datasets, showing detailed information without having to program anything.
 
-Foi criado baseado no dash.plotly.com
+Created based on [Dash](dash.plotly.com)
 
 ## Como funciona
 
@@ -58,23 +56,6 @@ visualização.
 
 Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 
-# Todo
-
-* Quantidade de registros duplicados (https://stackoverflow.com/questions/35584085/how-to-count-duplicate-rows-in-pandas-dataframe)
-* Permitir salvar os dataset carregados para nao precisar subir novamente
-* Permitir trabalhar em um dataset já salvo
-* Permitir salvar o resultado de trabalho de um dataset 
-* Permitir salvar os datasets como parquet
-* Utilizar o https://github.com/vaexio/vaex para trabalhar com os dataframes maiores
-* Permitir utilizar Dask?Swifter?Pandaralell?Vaex?
-* Criar uma aba para fazer tabelas dinâmicas ?
-
-Infos:
-add : amplitude, moda
-histograma, simetria da distribuição
-
-
-
 # Links
 
 * https://www.datageeks.com.br/pre-processamento-de-dados/
@@ -84,12 +65,11 @@ histograma, simetria da distribuição
 
 # Run local
 
-    mkvirtualenv mydash -p python3
-    pip install -r requirements.txt
-    python mydash.py 
+    pipenv install
+    pipenv run python tars_main.py 
         Dash is running on http://127.0.0.1:8050/
 
-        * Serving Flask app "mydash" (lazy loading)
+        * Serving Flask app "tars_main" (lazy loading)
         * Environment: production
         WARNING: This is a development server. Do not use it in a production deployment.
         Use a production WSGI server instead.
@@ -99,10 +79,11 @@ histograma, simetria da distribuição
 
 # Screens
 
-![tela principal](https://github.com/berlotto/mydash/raw/main/mydash.gif)
+![tela principal](https://github.com/berlotto/mydash/raw/main/tars.gif)
 
 
-#### Possiveis Nomes:
+#### The name: TARS
 
-- repandas
-- 
+TARS is the robot that accompanied and assisted Cooper in his space exploration in the 'Interstellar' movie.
+
+This tool will accompany the data explorer ;-)
