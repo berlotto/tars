@@ -79,7 +79,7 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 
 # Screens
 
-![tela principal](https://github.com/berlotto/mydash/raw/main/tars.gif)
+![tela principal](https://github.com/berlotto/tars/raw/main/tars.gif)
 
 
 #### The name: TARS
