@@ -333,4 +333,4 @@ def update_output(filter_data, modified_df_json):
     return df.to_dict('records') if df is not None else []
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(host="0.0.0.0", debug=False)
