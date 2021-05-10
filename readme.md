@@ -63,7 +63,15 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 * https://medium.com/swlh/6-ways-to-significantly-speed-up-pandas-with-a-couple-lines-of-code-part-2-7a9e41ba76dc 
 
 
-# Run local
+# Development information
+
+This project runs with Pipenv in Python 3.8 .
+
+Using some tools to control quality and padronization of code: black, isort, flake8 and pre-commit
+
+Thanks to [Brendan Maginnis](https://twitter.com/brendan_m6s) for this two posts: [post one](https://sourcery.ai/blog/python-best-practices/) and [post two](https://sourcery.ai/blog/python-docker/)
+
+## Run local
 
     pipenv install
     pipenv run python tars_main.py 
@@ -75,6 +83,11 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
         Use a production WSGI server instead.
         * Debug mode: on
 
+## Docker build
+
+    docker build . -t tars
+
+    docker run --rm -it -p 8050:8050 tars
 
 
 # Screens
@@ -82,7 +95,7 @@ Gráficos de barras, pizza, linha, coorelação, box, word_cloud, etc...
 ![tela principal](https://github.com/berlotto/tars/raw/main/tars.gif)
 
 
-#### The name: TARS
+# The name: TARS
 
 TARS is the robot that accompanied and assisted Cooper in his space exploration in the 'Interstellar' movie.
 
