@@ -41,6 +41,11 @@ xlrd = "==2.0.1"
 
 [dev-packages]
 ipdb = "*"
+black = "==21.5b1"
+isort = "*"
+flake8 = "*"
+mypy = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.8"
