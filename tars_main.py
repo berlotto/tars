@@ -245,7 +245,7 @@ app.layout = html.Div(
     Input("store_original_df", "data"),
     prevent_initial_call=True,
 )
-def show_sample_file_content(original_df_json):
+def on_load_sample_file_update_store_original(original_df_json):
     """Tab:Data, Section: Table with first rows"""
     original_df = from_session(original_df_json)
     return get_sample_df_data_children(original_df)
@@ -256,7 +256,7 @@ def show_sample_file_content(original_df_json):
     Input("store_original_df", "data"),
     prevent_initial_call=True,
 )
-def show_columns_informations(original_df_json):
+def on_update_store_original_show_sample_data(original_df_json):
     """Tab:Colunas, Section: Deal with the dataframe columns"""
     original_df = from_session(original_df_json)
     return get_dt_colunas_data(original_df)
@@ -267,7 +267,9 @@ def show_columns_informations(original_df_json):
     Input("store_original_df", "data"),
     prevent_initial_call=True,
 )
-def show_original_columns(original_df_json):
+def on_update_store_original_update_columns_original_configuration_data(
+    original_df_json,
+):
     """Tab:Columns, Section: Original Configuration"""
     original_df = from_session(original_df_json)
     columns_data = get_dt_colunas_data(original_df)
@@ -279,7 +281,7 @@ def show_original_columns(original_df_json):
     Input("store_modified_df", "data"),
     prevent_initial_call=True,
 )
-def show_information_gui(original_df_json):
+def on_update_modified_df_update_informations_fields(original_df_json):
     """Tab:Information, Section: Combobox of column"""
     modified_df = from_session(original_df_json)
     return get_information_components(modified_df)
@@ -290,8 +292,8 @@ def show_information_gui(original_df_json):
     Input("store_modified_df", "data"),
     prevent_initial_call=True,
 )
-def show_filter_gui(original_df_json):
-    """Tab:Information, Section: Combobox of column"""
+def on_update_modified_df_update_update_filterdata_gui(original_df_json):
+    """Tab:Filter Data, Section: Fields and Data"""
     modified_df = from_session(original_df_json)
     return get_tab_filtering_components(modified_df)
 
@@ -305,7 +307,7 @@ def show_filter_gui(original_df_json):
     State("dropdowncolumns", "value"),
     prevent_initial_call=True,
 )
-def apply_filter_button_click(
+def on_button_filter_click_update_table_data(
     n_clicks, filters_list, filter_value, filter_comp, filter_field
 ):
     """Tab:Filter & Clean, Section: Button 'bolt'"""
@@ -326,7 +328,7 @@ def apply_filter_button_click(
     Input("dropdownoperador", "value"),
     State("inputfiltervalue", "value"),
 )
-def change_value_disabled(comparator_value, value_value):
+def on_change_filter_operator_change_value_enable(comparator_value, value_value):
     if comparator_value in ("isnull", "notnull"):
         return (True, "")
     else:
@@ -341,7 +343,7 @@ def change_value_disabled(comparator_value, value_value):
     prevent_initial_call=True,
     suppress_callback_exceptions=True,
 )
-def save_original_df_on_load_file(list_of_contents, list_of_names, list_of_dates):
+def on_load_file_save_content_to_state(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
         try:
             df = parse_file_contents(list_of_contents, list_of_names, list_of_dates)
@@ -357,7 +359,7 @@ def save_original_df_on_load_file(list_of_contents, list_of_names, list_of_dates
     Input("store_original_df", "data"),
     Input("dt_colunas", "data"),
 )
-def save_modified_df(original_df_json, data):
+def on_update_content_on_state_update_modified_df(original_df_json, data):
     """Change the data of the Store for modified df"""
     if not data:
         raise PreventUpdate
@@ -372,7 +374,7 @@ def save_modified_df(original_df_json, data):
     Input("store_modified_df", "data"),
     Input("dt_colunas", "data"),
 )
-def changed_cell_value(modified_df_json, data):
+def on_change_modified_df_update_columns_result_configuration(modified_df_json, data):
     """Show the modified columns in the Result configuration"""
     if not data:
         raise PreventUpdate
@@ -388,7 +390,7 @@ def changed_cell_value(modified_df_json, data):
     Input("selected_column", "value"),
     prevent_initial_call=True,
 )
-def change_info_column_dropdown(df_json, info_column):
+def on_change_modified_df_state_update_information_columns(df_json, info_column):
     """Show information when column dropdown, in Information tab is changed."""
     info_children = []
 
@@ -415,7 +417,7 @@ def change_info_column_dropdown(df_json, info_column):
     Input("data-table-filter", "data"),
     State("store_modified_df", "data"),
 )
-def update_output(filter_data, modified_df_json):
+def on_add_filter_update_table_data(filter_data, modified_df_json):
 
     df = pd.DataFrame()
     if modified_df_json:
@@ -445,4 +447,4 @@ def update_output(filter_data, modified_df_json):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", debug=False)
+    app.run_server(host="0.0.0.0", debug=True)

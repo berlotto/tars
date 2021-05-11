@@ -7,6 +7,7 @@
 * Permitir 'Normalização' dos dados: equalização das grandezas e escalas.
 * Permitir utilizar algortitmo de clusterização para ver as contagens por grupo na aba visualização
 * Mostrar a classificação inicial da coluna como : Quantitativo (discreto/continuo) e Qualitativo; Permitir informar escalas de medição: Intervalo/Proporção e Nominal/Ordinal ?
+* Permitir criar colunas novas com calculos ou agragações ? Faz sentido só na visualização ?
 * Quantidade de registros duplicados (https://stackoverflow.com/questions/35584085/how-to-count-duplicate-rows-in-pandas-dataframe)
 * Permitir salvar os dataset carregados para nao precisar subir novamente
 * Permitir trabalhar em um dataset já salvo
