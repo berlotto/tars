@@ -369,7 +369,7 @@ def get_tab_filtering_components(df: pd.DataFrame = None) -> List:
     table = None
     if dataframe_data and dataframe_columns:
         table = dash_table.DataTable(
-            id="data_filtering",
+            id="modified_filtered_table",
             data=dataframe_data,
             columns=dataframe_columns,
             editable=False,
@@ -379,5 +379,218 @@ def get_tab_filtering_components(df: pd.DataFrame = None) -> List:
             page_action="native",
             page_size=50,
         )
+    else:
+        table = dash_table.DataTable(
+            id="modified_filtered_table",
+            data=[],
+            columns=[],
+            editable=False,
+            row_deletable=False,
+            sort_action="native",
+            sort_mode="multi",
+            page_action="native",
+            page_size=50,
+        )
 
     return [html.Div(children=[html.Div(children=datafilters_components), table])]
+
+
+def get_data_tab_components():
+
+    return dcc.Loading(
+        id="loading-samples",
+        type="graph",
+        children=html.Div(
+            id="sample-file-content",
+            children=html.P("Click in 'Load data' button to load a dataset..."),
+            style={"minHeight": "200px", "textAlign": "center", "paddingTop": "5px"},
+        ),
+    )
+
+
+def get_columns_tab_components():
+    return [
+        html.Div(
+            [
+                html.H4("Deal with the dataframe columns"),
+                html.Div(
+                    className="row",
+                    children=[
+                        html.Div(className="one column", children=[""]),
+                        html.Div(
+                            className="eleven columns",
+                            children=[
+                                dash_table.DataTable(
+                                    id="dt_colunas",
+                                    data=[],
+                                    editable=True,
+                                    columns=[
+                                        {"name": "Column", "id": "coluna"},
+                                        {"name": "Type", "id": "tipo"},
+                                        {
+                                            "name": "Rename to",
+                                            "type": "text",
+                                            "id": "rename",
+                                            "editable": True,
+                                            "presentation": "input",
+                                        },
+                                        {
+                                            "name": "Convert to",
+                                            "id": "converter",
+                                            "editable": True,
+                                            "presentation": "dropdown",
+                                        },
+                                        {
+                                            "name": "Remove?",
+                                            "id": "excluir",
+                                            "editable": True,
+                                            "presentation": "dropdown",
+                                        },
+                                        {"name": "Fillna", "id": "fillna"},
+                                    ],
+                                    dropdown={
+                                        "excluir": {
+                                            "clearable": False,
+                                            "options": [
+                                                {
+                                                    "label": "Keep column",
+                                                    "value": False,
+                                                },
+                                                {
+                                                    "label": "Remove column",
+                                                    "value": True,
+                                                },
+                                            ],
+                                        },
+                                        "converter": {
+                                            "clearable": True,
+                                            "options": [
+                                                {"label": "object", "value": "object"},
+                                                {"label": "str", "value": "str"},
+                                                {"label": "bool", "value": "bool"},
+                                                {
+                                                    "label": "datetime64[ns]",
+                                                    "value": "datetime64[ns]",
+                                                },
+                                                {"label": "int8", "value": "int8"},
+                                                {"label": "int16", "value": "int16"},
+                                                {"label": "int32", "value": "int32"},
+                                                {"label": "int64", "value": "int64"},
+                                                {"label": "uint8", "value": "uint8"},
+                                                {"label": "uint16", "value": "uint16"},
+                                                {"label": "uint32", "value": "uint32"},
+                                                {"label": "uint64", "value": "uint64"},
+                                                {
+                                                    "label": "float16",
+                                                    "value": "float16",
+                                                },
+                                                {
+                                                    "label": "float32",
+                                                    "value": "float32",
+                                                },
+                                                {
+                                                    "label": "float64",
+                                                    "value": "float64",
+                                                },
+                                                {
+                                                    "label": "float128",
+                                                    "value": "float128",
+                                                },
+                                            ],
+                                        },
+                                    },
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                html.Div(
+                    className="row",
+                    children=[
+                        html.Div(className="one column", children=[""]),
+                        html.Div(
+                            className="five columns",
+                            children=[
+                                html.H3(["Original configuration"]),
+                                html.Div(id="original_df_cols", children=[]),
+                            ],
+                        ),
+                        html.Div(
+                            className="six columns",
+                            children=[
+                                html.H3(["Result configuration"]),
+                                html.Div(id="changed_df_cols", children=[]),
+                            ],
+                        ),
+                    ],
+                ),
+            ]
+        )
+    ]
+
+
+def get_vis_tab_components():
+
+    grap_type_options = [
+        {"label": "Line chart", "value": "line"},
+        {"label": "Vertical Bar chart", "value": "vbar"},
+        {"label": "Horizontal Bar chart", "value": "hbar"},
+        {"label": "Scatter", "value": "scatter"},
+        {"label": "Histogram", "value": "histogram"},
+    ]
+
+    graph_type_component = dcc.Dropdown(
+        id="graph-type",
+        options=grap_type_options,
+        value="line",
+        clearable=False,
+        placeholder="Graph type",
+    )
+
+    x_component = dcc.Dropdown(
+        id="x-axis",
+        options=[],
+        clearable=True,
+        placeholder="X axis",
+    )
+    y_component = dcc.Dropdown(
+        id="y-axis",
+        options=[],
+        clearable=True,
+        placeholder="Y axis",
+    )
+
+    return [
+        row(
+            [
+                col(
+                    "three columns",
+                    children=[
+                        html.H4("Visualization configuration"),
+                        # graph type
+                        graph_type_component,
+                        x_component,
+                        y_component,
+                    ],
+                ),
+                col(
+                    "nine columns",
+                    children=[
+                        dcc.Loading(
+                            id="loading-graph-content",
+                            type="graph",
+                            children=html.Div(
+                                id="graph_content",
+                                children=html.P("- no graph yet -"),
+                                style={
+                                    "minHeight": "40px",
+                                    "textAlign": "center",
+                                    "paddingTop": "5px",
+                                },
+                            ),
+                        )
+                    ],
+                ),
+            ]
+        )
+    ]

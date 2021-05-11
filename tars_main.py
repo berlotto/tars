@@ -2,19 +2,22 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_table
 import pandas as pd
+import plotly.express as px
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 
 from core.components import (
+    get_columns_tab_components,
+    get_data_tab_components,
     get_information_components,
     get_numeric_information_gui,
     get_sample_df_data_children,
     get_string_information_gui,
     get_tab_filtering_components,
     get_table_dfcolumns,
+    get_vis_tab_components,
 )
 from core.data import (
     from_session,
@@ -35,140 +38,6 @@ others = [
 app = dash.Dash(__name__, external_stylesheets=others)
 # Important configuration to deal with non-created components
 app.config["suppress_callback_exceptions"] = True
-
-
-def sample_data_skeleton():
-
-    return dcc.Loading(
-        id="loading-samples",
-        type="graph",
-        children=html.Div(
-            id="sample-file-content",
-            children=html.P("Click in 'Load data' button to load a dataset..."),
-            style={"minHeight": "200px", "textAlign": "center", "paddingTop": "5px"},
-        ),
-    )
-
-
-def columns_skeleton():
-    return [
-        html.Div(
-            [
-                html.H4("Deal with the dataframe columns"),
-                html.Div(
-                    className="row",
-                    children=[
-                        html.Div(className="one column", children=[""]),
-                        html.Div(
-                            className="eleven columns",
-                            children=[
-                                dash_table.DataTable(
-                                    id="dt_colunas",
-                                    data=[],
-                                    editable=True,
-                                    columns=[
-                                        {"name": "Column", "id": "coluna"},
-                                        {"name": "Type", "id": "tipo"},
-                                        {
-                                            "name": "Rename to",
-                                            "type": "text",
-                                            "id": "rename",
-                                            "editable": True,
-                                            "presentation": "input",
-                                        },
-                                        {
-                                            "name": "Convert to",
-                                            "id": "converter",
-                                            "editable": True,
-                                            "presentation": "dropdown",
-                                        },
-                                        {
-                                            "name": "Remove?",
-                                            "id": "excluir",
-                                            "editable": True,
-                                            "presentation": "dropdown",
-                                        },
-                                        {"name": "Fillna", "id": "fillna"},
-                                    ],
-                                    dropdown={
-                                        "excluir": {
-                                            "clearable": False,
-                                            "options": [
-                                                {
-                                                    "label": "Keep column",
-                                                    "value": False,
-                                                },
-                                                {
-                                                    "label": "Remove column",
-                                                    "value": True,
-                                                },
-                                            ],
-                                        },
-                                        "converter": {
-                                            "clearable": True,
-                                            "options": [
-                                                {"label": "object", "value": "object"},
-                                                {"label": "str", "value": "str"},
-                                                {"label": "bool", "value": "bool"},
-                                                {
-                                                    "label": "datetime64[ns]",
-                                                    "value": "datetime64[ns]",
-                                                },
-                                                {"label": "int8", "value": "int8"},
-                                                {"label": "int16", "value": "int16"},
-                                                {"label": "int32", "value": "int32"},
-                                                {"label": "int64", "value": "int64"},
-                                                {"label": "uint8", "value": "uint8"},
-                                                {"label": "uint16", "value": "uint16"},
-                                                {"label": "uint32", "value": "uint32"},
-                                                {"label": "uint64", "value": "uint64"},
-                                                {
-                                                    "label": "float16",
-                                                    "value": "float16",
-                                                },
-                                                {
-                                                    "label": "float32",
-                                                    "value": "float32",
-                                                },
-                                                {
-                                                    "label": "float64",
-                                                    "value": "float64",
-                                                },
-                                                {
-                                                    "label": "float128",
-                                                    "value": "float128",
-                                                },
-                                            ],
-                                        },
-                                    },
-                                ),
-                            ],
-                        ),
-                    ],
-                ),
-                html.Div(
-                    className="row",
-                    children=[
-                        html.Div(className="one column", children=[""]),
-                        html.Div(
-                            className="five columns",
-                            children=[
-                                html.H3(["Original configuration"]),
-                                html.Div(id="original_df_cols", children=[]),
-                            ],
-                        ),
-                        html.Div(
-                            className="six columns",
-                            children=[
-                                html.H3(["Result configuration"]),
-                                html.Div(id="changed_df_cols", children=[]),
-                            ],
-                        ),
-                    ],
-                ),
-            ]
-        )
-    ]
 
 
 app.layout = html.Div(
@@ -216,10 +85,12 @@ app.layout = html.Div(
             value="tab-data",
             children=[
                 dcc.Tab(
-                    label="Data", value="tab-data", children=sample_data_skeleton()
+                    label="Data", value="tab-data", children=get_data_tab_components()
                 ),
                 dcc.Tab(
-                    label="Columns", value="tab-columns", children=columns_skeleton()
+                    label="Columns",
+                    value="tab-columns",
+                    children=get_columns_tab_components(),
                 ),
                 dcc.Tab(
                     label="Informations",
@@ -233,7 +104,11 @@ app.layout = html.Div(
                     id="tab-filter",
                     children=get_tab_filtering_components(),
                 ),
-                dcc.Tab(label="Visualization", value="tag-visualizacao"),
+                dcc.Tab(
+                    label="Visualization",
+                    value="tag-visualizacao",
+                    children=get_vis_tab_components(),
+                ),
             ],
         ),
     ],
@@ -413,7 +288,7 @@ def on_change_modified_df_state_update_information_columns(df_json, info_column)
 
 
 @app.callback(
-    Output("data_filtering", "data"),
+    Output("modified_filtered_table", "data"),
     Input("data-table-filter", "data"),
     State("store_modified_df", "data"),
 )
@@ -444,6 +319,69 @@ def on_add_filter_update_table_data(filter_data, modified_df_json):
                 df = df[df[filter_row["field"]] <= typed_value]
 
     return df.to_dict("records") if df is not None else []
+
+
+@app.callback(
+    Output("x-axis", "options"),
+    Input("modified_filtered_table", "data"),
+    Input("y-axis", "value"),
+    prevent_initial_call=True,
+)
+def on_modify_df_load_columns_x_axis(filtered_data, y_selected):
+
+    df = pd.DataFrame.from_records(filtered_data)
+    return [{"label": c, "value": c} for c in df.columns if c != y_selected]
+
+
+@app.callback(
+    Output("y-axis", "options"),
+    Input("modified_filtered_table", "data"),
+    Input("x-axis", "value"),
+    prevent_initial_call=True,
+)
+def on_modify_df_load_columns_y_axis(filtered_data, x_selected):
+
+    df = pd.DataFrame.from_records(filtered_data)
+    return [{"label": c, "value": c} for c in df.columns if c != x_selected]
+
+
+@app.callback(
+    Output("graph_content", "children"),
+    Input("modified_filtered_table", "data"),
+    Input("graph-type", "value"),
+    Input("x-axis", "value"),
+    Input("y-axis", "value"),
+    prevent_initial_call=True,
+)
+def on_add_filter_update_visualization_tab(filtered_data, graph_type, x_col, y_col):
+    print("Mostrando um grafico do tipo:", graph_type)
+
+    df = pd.DataFrame.from_records(filtered_data)
+
+    conditions = [df is not None, not df.empty, graph_type, x_col, y_col]
+    print(all(conditions))
+    print(conditions)
+
+    if all(conditions):
+
+        if graph_type == "line":
+            fig = px.line(df, y=y_col, x=x_col)
+        elif graph_type == "vbar":
+            fig = px.bar(df, y=y_col, x=x_col)
+        elif graph_type == "hbar":
+            fig = px.bar(df, y=y_col, x=x_col, orientation="h")
+        elif graph_type == "scatter":
+            fig = px.scatter(df, y=y_col, x=x_col)
+        # elif graph_type == 'pie':
+        #     fig = px.pie(df, values='open', names='country', title='Population of European continent')
+        elif graph_type == "histogram":
+            fig = px.histogram(df, x=x_col)
+
+        graph = dcc.Graph(id="vis-plot", figure=fig)
+
+        return graph
+    else:
+        return []
 
 
 if __name__ == "__main__":

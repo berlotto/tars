@@ -43,10 +43,8 @@ def parse_file_contents(contents, filename, date):
             df_comma = pd.read_csv(csv_content, parse_dates=True, nrows=1, sep=",")
             csv_content.seek(0)
             if df_comma.shape[1] > df_semicolon.shape[1]:
-                print("is comma separated")
                 df = pd.read_csv(csv_content, parse_dates=True, sep=",")
             else:
-                print("is semicolon separated")
                 df = pd.read_csv(csv_content, parse_dates=True, sep=";")
 
         elif "xls" in filename:
