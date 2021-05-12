@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+import os
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import flask
 import pandas as pd
 import plotly.express as px
 from dash.dependencies import Input, Output, State
@@ -38,6 +41,14 @@ others = [
 app = dash.Dash(__name__, external_stylesheets=others)
 # Important configuration to deal with non-created components
 app.config["suppress_callback_exceptions"] = True
+app.title = "TARS Tool"
+
+
+@app.server.route("/favicon.ico")
+def favicon():
+    return flask.send_from_directory(
+        os.path.join(app.server.root_path, "assets"), "favicon.ico"
+    )
 
 
 app.layout = html.Div(
@@ -317,6 +328,23 @@ def on_add_filter_update_table_data(filter_data, modified_df_json):
                 df = df[df[filter_row["field"]] < typed_value]
             if filter_row["comp"] == "le":
                 df = df[df[filter_row["field"]] <= typed_value]
+            if filter_row["comp"] == "isnull":
+                df = df[df[filter_row["field"]].isna()]
+            if filter_row["comp"] == "notnull":
+                df = df[df[filter_row["field"]].notna()]
+            if filter_row["comp"] == "between":
+
+                if ";" in typed_value:
+                    start, end = typed_value.split(";")
+                    start = value_as_type(df, filter_row["field"], start)
+                    end = value_as_type(df, filter_row["field"], end)
+                    df = df[df[filter_row["field"]].between(start, end)]
+
+            if filter_row["comp"] == "contains":
+                try:
+                    df = df[df[filter_row["field"]].str.contains(typed_value)]
+                except AttributeError:
+                    print("Error using contains in numeric column")
 
     return df.to_dict("records") if df is not None else []
 
@@ -381,7 +409,7 @@ def on_add_filter_update_visualization_tab(filtered_data, graph_type, x_col, y_c
 
         return graph
     else:
-        return []
+        return html.P("- no graph yet -")
 
 
 if __name__ == "__main__":
